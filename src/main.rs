@@ -55,7 +55,7 @@ fn main() {
                 DallECommands::Generate(gen) => {
                     let p = Path::new(&gen.dir);
                     // TODO: Improve erroring
-                    assert_eq!(p.exists() && p.is_dir(), true);
+                    assert!(p.exists() && p.is_dir());
                     dalle::generate(&gen.prompt, gen.n, &gen.size, &gen.dir)
                 }
             }
