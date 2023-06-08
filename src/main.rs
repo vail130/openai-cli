@@ -1,10 +1,13 @@
+use std::error::Error;
 use std::path::Path;
+use std::process;
+
 use clap::{Args, Parser, Subcommand};
 
 mod dalle;
 
 #[derive(Parser)]
-#[command(name = "open-ai")]
+#[command(name = "openai")]
 #[command(author = "Vail Gold")]
 #[command(version = "0.0.1")]
 #[command(about = "Interacts with OpenAI APIs via command line", long_about = None)]
@@ -27,7 +30,8 @@ struct DallEArgs {
 
 #[derive(Subcommand)]
 enum DallECommands {
-    /// Generates images from a text prompt
+    /// Generates images from a text prompt, saving generated images to provided directory
+    /// and filenames are emitted to STDOUT
     Generate(DallEGenArgs),
 }
 
@@ -38,15 +42,16 @@ struct DallEGenArgs {
     /// Number of images to generate
     #[arg(long, default_value_t = 1)]
     n: u8,
-    /// Must be 256, 512 or 1024
+    /// Size of image; must be 256, 512 or 1024
     #[arg(long, default_value = "1024")]
     size: String,
-    /// Directory to save generated image
+    /// Directory into which to save generated images
     #[arg(short, long, default_value = ".")]
     dir: String,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     match &cli.command {
@@ -54,9 +59,11 @@ fn main() {
             match &dalle.command {
                 DallECommands::Generate(gen) => {
                     let p = Path::new(&gen.dir);
-                    // TODO: Improve erroring
-                    assert!(p.exists() && p.is_dir());
-                    dalle::generate(&gen.prompt, gen.n, &gen.size, &gen.dir)
+                    if !(p.exists() && p.is_dir()) {
+                        eprintln!("Directory does not exist: {}", gen.dir);
+                        process::exit(1);
+                    }
+                    process::exit(dalle::generate(&gen.prompt, gen.n, &gen.size, &gen.dir))
                 }
             }
         }
