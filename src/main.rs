@@ -1,10 +1,8 @@
-use std::error::Error;
-use std::path::Path;
-use std::process;
+use std::{error::Error, path::Path, process};
 
 use clap::{Args, Parser, Subcommand};
 
-mod dalle;
+mod images;
 
 #[derive(Parser)]
 #[command(name = "openai")]
@@ -18,26 +16,28 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Uses Dall-E service
-    DallE(DallEArgs),
+    /// Uses Images service
+    Images(ImagesArgs),
 }
 
 #[derive(Args)]
-struct DallEArgs {
+struct ImagesArgs {
     #[command(subcommand)]
-    command: DallECommands,
+    command: ImagesCommands,
 }
 
 #[derive(Subcommand)]
-enum DallECommands {
-    /// Generates images from a text prompt, saving generated images to provided directory
+enum ImagesCommands {
+    /// Create images from a text prompt, saving generated images to provided directory
     /// and filenames are emitted to STDOUT
-    Generate(DallEGenArgs),
-    Edit(DallEEditArgs),
+    Create(ImagesCreateArgs),
+    /// Creates an edited or extended image given an original image and a prompt, saving generated images to provided directory
+    /// and filenames are emitted to STDOUT
+    Edit(ImagesEditArgs),
 }
 
 #[derive(Args)]
-struct DallEGenArgs {
+struct ImagesCreateArgs {
     /// Text prompt of desired images
     prompt: String,
     /// Number of images
@@ -52,7 +52,7 @@ struct DallEGenArgs {
 }
 
 #[derive(Args)]
-struct DallEEditArgs {
+struct ImagesEditArgs {
     /// Path to image to edit
     image: String,
     /// Text prompt of desired images
@@ -84,14 +84,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     let exit_code = match &cli.command {
-        Commands::DallE(dalle) => match &dalle.command {
-            DallECommands::Generate(gen) => {
+        Commands::Images(images) => match &images.command {
+            ImagesCommands::Create(gen) => {
                 check_dir(&gen.dir);
-                dalle::generate(&gen.prompt, gen.n, &gen.size, &gen.dir)
+                images::create(&gen.prompt, gen.n, &gen.size, &gen.dir)
             }
-            DallECommands::Edit(edit) => {
+            ImagesCommands::Edit(edit) => {
                 check_dir(&edit.dir);
-                dalle::edit(
+                images::edit(
                     &edit.image,
                     &edit.mask,
                     &edit.prompt,
