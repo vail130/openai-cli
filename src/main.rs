@@ -28,12 +28,15 @@ struct ImagesArgs {
 
 #[derive(Subcommand)]
 enum ImagesCommands {
-    /// Create images from a text prompt, saving generated images to provided directory
+    /// Creates images from a text prompt, saving generated images to provided directory
     /// and filenames are emitted to STDOUT
     Create(ImagesCreateArgs),
     /// Creates an edited or extended image given an original image and a prompt, saving generated images to provided directory
     /// and filenames are emitted to STDOUT
     Edit(ImagesEditArgs),
+    /// Creates variations of an image, saving generated images to provided directory
+    /// and filenames are emitted to STDOUT
+    Variation(ImagesVariationArgs),
 }
 
 #[derive(Args)]
@@ -71,6 +74,21 @@ struct ImagesEditArgs {
     dir: String,
 }
 
+#[derive(Args)]
+struct ImagesVariationArgs {
+    /// Path to image to derive variation
+    image: String,
+    /// Number of images
+    #[arg(long, default_value_t = 1)]
+    n: u8,
+    /// Size of image; must be 256, 512 or 1024
+    #[arg(long, default_value = "1024")]
+    size: String,
+    /// Directory into which to save images
+    #[arg(short, long, default_value = ".")]
+    dir: String,
+}
+
 fn check_dir(dir: &String) {
     let p = Path::new(dir);
     if !(p.exists() && p.is_dir()) {
@@ -85,20 +103,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let exit_code = match &cli.command {
         Commands::Images(images) => match &images.command {
-            ImagesCommands::Create(gen) => {
-                check_dir(&gen.dir);
-                images::create(&gen.prompt, gen.n, &gen.size, &gen.dir)
+            ImagesCommands::Create(args) => {
+                check_dir(&args.dir);
+                images::create(&args.prompt, args.n, &args.size, &args.dir)
             }
-            ImagesCommands::Edit(edit) => {
-                check_dir(&edit.dir);
+            ImagesCommands::Edit(args) => {
+                check_dir(&args.dir);
                 images::edit(
-                    &edit.image,
-                    &edit.mask,
-                    &edit.prompt,
-                    edit.n,
-                    &edit.size,
-                    &edit.dir,
+                    &args.image,
+                    &args.mask,
+                    &args.prompt,
+                    args.n,
+                    &args.size,
+                    &args.dir,
                 )
+            }
+            ImagesCommands::Variation(args) => {
+                check_dir(&args.dir);
+                images::variation(&args.image, args.n, &args.size, &args.dir)
             }
         },
     };
