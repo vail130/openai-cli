@@ -22,6 +22,12 @@ openai images create --n 4 --size 512 --dir "$HOME" "a white siamese cat"
 # Edit with default params
 openai images edit ./image.png "A sunlit indoor lounge area with a pool containing a flamingo"
 
-# Edit with default params
+# Edit with custom params
 openai images edit --mask ./mask.png --n 4 --size 512 --dir "$HOME" ./image.png "A sunlit indoor lounge area with a pool containing a flamingo"
+
+# Variation with default params
+openai images variation ./image.png
+
+# Variation with custom params
+openai images variation --n 4 --size 512 --dir "$HOME" ./image.png
 ```
