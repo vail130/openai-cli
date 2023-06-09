@@ -9,7 +9,7 @@ use futures::executor::block_on;
 
 const API_USER: &str = "github.comm/vail130/openai-cli";
 
-pub fn generate(prompt: &String, n: u8, size: &str, dir: &String) -> i32 {
+pub fn create(prompt: &String, n: u8, size: &str, dir: &String) -> i32 {
     let image_size = match size {
         "256" => ImageSize::S256x256,
         "512" => ImageSize::S512x512,
